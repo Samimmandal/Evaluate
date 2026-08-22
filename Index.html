@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCQ Evaluator Pro · Grok AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#f5f5f7] dark:bg-[#000000] text-[#1c1c1e] dark:text-[#f5f5f7] min-h-screen font-sans antialiased selection:bg-blue-500 selection:text-white transition-colors duration-300">
+
+    <!-- Minimalist Navbar with Theme Toggle -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-[#000000]/80 border-b border-black/10 dark:border-white/10 transition-colors duration-300">
+        <div class="max-w-4xl mx-auto px-6 h-12 flex justify-between items-center text-xs tracking-wide">
+            <div class="font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-base"></i> MCQ Vision Pro
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-black/60 dark:text-white/60">AI-Powered Sheet Evaluator</span>
+                <button id="theme-toggle" aria-label="Toggle theme" class="text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto px-4 py-12 space-y-8">
+
+        <!-- Hero Title Section -->
+        <div class="text-center space-y-2">
+            <h1 class="text-4xl md:text-5xl font-semibold tracking-tight">Precision Exam Grading.</h1>
+            <p class="text-black/60 dark:text-white/60 text-sm md:text-base">Upload or capture answer sheets for instant, pixel-accurate AI evaluation.</p>
+        </div>
+
+        <!-- Segmented Control Tabs -->
+        <div class="flex bg-white dark:bg-[#161617] p-1 rounded-xl max-w-md mx-auto border border-black/10 dark:border-white/10 shadow-inner transition-colors duration-300">
+            <button id="tab-setup-btn" onclick="App.switchTab('setup')" class="flex-1 py-2 text-xs font-medium rounded-lg bg-black/10 dark:bg-white/20 text-black dark:text-white shadow transition-all duration-200" aria-selected="true">
+                1. Answer Key Setup
+            </button>
+            <button id="tab-scan-btn" onclick="App.switchTab('scan')" class="flex-1 py-2 text-xs font-medium rounded-lg text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-all duration-200" aria-selected="false">
+                2. Scan & Evaluate
+            </button>
+        </div>
+
+        <!-- Tab 1: Answer Key Setup -->
+        <div id="section-setup" class="bg-white dark:bg-[#161617] p-8 rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl space-y-6 backdrop-blur-md transition-colors duration-300">
+            <div class="space-y-1">
+                <h2 class="text-xl font-semibold tracking-tight">Configure Answer Key</h2>
+                <p class="text-xs text-black/50 dark:text-white/50">Select total questions and assign the correct option (A, B, C, D) for each.</p>
+            </div>
+
+            <!-- API Key Input -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-black/5 dark:bg-[#1d1d1f] p-4 rounded-xl border border-black/5 dark:border-white/5">
+                <label for="api-key-input" class="text-sm font-medium text-black/80 dark:text-white/80 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-blue-500"></i> Grok API Key
+                </label>
+                <div class="relative flex-1 w-full">
+                    <input id="api-key-input" type="password" placeholder="Enter your Grok API key" class="w-full bg-white dark:bg-[#2c2c2e] text-black dark:text-white text-sm border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" />
+                    <button id="toggle-api-visibility" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition" aria-label="Toggle API key visibility">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between bg-black/5 dark:bg-[#1d1d1f] p-4 rounded-xl border border-black/5 dark:border-white/5">
+                <span class="text-sm font-medium text-black/80 dark:text-white/80">Total Questions</span>
+                <select id="total-questions" onchange="App.generateAnswerKeyInputs()" class="bg-white dark:bg-[#2c2c2e] text-black dark:text-white text-sm border border-black/10 dark:border-white/10 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 transition">
+                    <option value="10" selected>10 Questions</option>
+                    <option value="20">20 Questions</option>
+                    <option value="30">30 Questions</option>
+                    <option value="40">40 Questions</option>
+                </select>
+            </div>
+
+            <div id="answer-key-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-3 max-h-72 overflow-y-auto pr-1">
+                <!-- Dynamic Inputs -->
+            </div>
+
+            <button onclick="App.saveAnswerKey()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-3 rounded-xl transition shadow-lg shadow-blue-500/20 active:scale-[0.99]">
+                Save Answer Key
+            </button>
+        </div>
+
+        <!-- Tab 2: Scan and Evaluate -->
+        <div id="section-scan" class="bg-white dark:bg-[#161617] p-8 rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl space-y-6 hidden backdrop-blur-md transition-colors duration-300">
+            <div class="space-y-1">
+                <h2 class="text-xl font-semibold tracking-tight">Student Sheet Scanner</h2>
+                <p class="text-xs text-black/50 dark:text-white/50">Capture or upload the physical answer sheet for intelligent multi-modal recognition.</p>
+            </div>
+
+            <!-- Upload / Camera Card -->
+            <div class="border border-dashed border-black/20 dark:border-white/20 rounded-2xl p-6 text-center space-y-4 bg-black/5 dark:bg-[#1d1d1f]/50 transition-colors">
+                <div id="preview-container" class="hidden relative max-w-xs mx-auto">
+                    <img id="scanned-image" class="rounded-xl shadow-lg max-h-56 mx-auto object-cover border border-black/10 dark:border-white/10" alt="Student sheet preview" />
+                    <button onclick="App.clearImage()" class="absolute top-2 right-2 bg-black/70 hover:bg-red-600 text-white rounded-full p-1.5 w-8 h-8 flex items-center justify-center backdrop-blur-md transition" aria-label="Clear image">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+
+                <div id="upload-placeholder" class="space-y-4 py-4">
+                    <div class="w-12 h-12 bg-black/10 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-black/60 dark:text-white/60 border border-black/10 dark:border-white/10">
+                        <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <label class="bg-white dark:bg-[#2c2c2e] hover:bg-black/10 dark:hover:bg-[#3a3a3c] text-black dark:text-white text-xs font-medium px-4 py-2.5 rounded-xl cursor-pointer transition border border-black/10 dark:border-white/10 flex items-center justify-center gap-2" aria-label="Upload photo">
+                            <i class="fa-solid fa-image"></i> Upload Photo
+                            <input type="file" accept="image/*" onchange="App.handleImageUpload(event)" class="hidden" />
+                        </label>
+                        <button onclick="App.openCamera()" class="bg-white dark:bg-[#2c2c2e] hover:bg-black/10 dark:hover:bg-[#3a3a3c] text-black dark:text-white text-xs font-medium px-4 py-2.5 rounded-xl transition border border-black/10 dark:border-white/10 flex items-center justify-center gap-2" aria-label="Open camera">
+                            <i class="fa-solid fa-camera"></i> Open Camera
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Camera Stream Section -->
+                <div id="camera-modal" class="hidden space-y-3">
+                    <video id="camera-stream" autoplay playsinline class="w-full max-w-md mx-auto rounded-xl border border-black/10 dark:border-white/10 bg-black"></video>
+                    <div class="flex justify-center gap-2">
+                        <button onclick="App.capturePhoto()" class="bg-white text-black hover:bg-white/90 text-xs font-semibold px-6 py-2.5 rounded-full shadow transition" aria-label="Capture photo">
+                            Capture Photo
+                        </button>
+                        <button onclick="App.closeCamera()" class="bg-red-600 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow transition" aria-label="Cancel camera">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="eval-btn" disabled class="w-full bg-black/10 dark:bg-white/10 text-black/40 dark:text-white/40 text-sm font-medium py-3 rounded-xl transition cursor-not-allowed" aria-label="Evaluate exam">
+                Evaluate with AI Vision
+            </button>
+
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="hidden text-center py-6 space-y-3">
+                <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-400"></i>
+                <p id="loading-status" class="text-xs text-black/60 dark:text-white/60 tracking-wide">Analyzing student responses via Grok Vision...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="result-section" class="hidden space-y-6 border-t border-black/10 dark:border-white/10 pt-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-semibold tracking-wide text-black/80 dark:text-white/80 uppercase">Evaluation Report</h3>
+                    <button onclick="App.exportResults()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition shadow" aria-label="Export results">
+                        <i class="fa-solid fa-file-export mr-1"></i> Export CSV
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-black/5 dark:bg-[#1d1d1f] p-4 rounded-2xl border border-black/5 dark:border-white/5 text-center space-y-1">
+                        <p class="text-[11px] text-black/40 dark:text-white/40 uppercase tracking-wider font-medium">Score</p>
+                        <p id="res-score" class="text-2xl font-semibold">0 / 10</p>
+                    </div>
+                    <div class="bg-black/5 dark:bg-[#1d1d1f] p-4 rounded-2xl border border-black/5 dark:border-white/5 text-center space-y-1">
+                        <p class="text-[11px] text-black/40 dark:text-white/40 uppercase tracking-wider font-medium">Percentage</p>
+                        <p id="res-percentage" class="text-2xl font-semibold text-blue-500">0%</p>
+                    </div>
+                    <div class="bg-black/5 dark:bg-[#1d1d1f] p-4 rounded-2xl border border-black/5 dark:border-white/5 text-center space-y-1">
+                        <p class="text-[11px] text-black/40 dark:text-white/40 uppercase tracking-wider font-medium">Grade & Rank</p>
+                        <p id="res-grade" class="text-base font-semibold text-emerald-500">-</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Breakdown -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-medium text-black/50 dark:text-white/50 uppercase tracking-wider">Question Breakdown</h4>
+                    <div id="breakdown-grid" class="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-52 overflow-y-auto p-2 bg-black/5 dark:bg-[#1d1d1f] rounded-xl border border-black/5 dark:border-white/5">
+                        <!-- Dynamic items -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Modal Box -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center transition-colors">
+            <h3 id="modal-title" class="font-semibold text-base">Notice</h3>
+            <p id="modal-message" class="text-xs text-black/60 dark:text-white/60 break-words"></p>
+            <button onclick="App.closeModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium py-2.5 rounded-xl transition">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------------
+        // App Module – Grok API with enhanced error handling
+        // --------------------------------------------
+        const App = (function() {
+            // Private state
+            let answerKey = {};
+            let currentImageBase64 = '';
+            let mediaStream = null;
+            let apiKey = '';
+            let totalQuestions = 10;
+
+            // DOM refs
+            const dom = {};
+
+            function init() {
+                // Cache DOM elements
+                dom.setupSection = document.getElementById('section-setup');
+                dom.scanSection = document.getElementById('section-scan');
+                dom.tabSetup = document.getElementById('tab-setup-btn');
+                dom.tabScan = document.getElementById('tab-scan-btn');
+                dom.totalQuestions = document.getElementById('total-questions');
+                dom.keyGrid = document.getElementById('answer-key-grid');
+                dom.previewContainer = document.getElementById('preview-container');
+                dom.scannedImage = document.getElementById('scanned-image');
+                dom.uploadPlaceholder = document.getElementById('upload-placeholder');
+                dom.cameraModal = document.getElementById('camera-modal');
+                dom.cameraStream = document.getElementById('camera-stream');
+                dom.evalBtn = document.getElementById('eval-btn');
+                dom.loadingSpinner = document.getElementById('loading-spinner');
+                dom.loadingStatus = document.getElementById('loading-status');
+                dom.resultSection = document.getElementById('result-section');
+                dom.resScore = document.getElementById('res-score');
+                dom.resPercentage = document.getElementById('res-percentage');
+                dom.resGrade = document.getElementById('res-grade');
+                dom.breakdownGrid = document.getElementById('breakdown-grid');
+                dom.modal = document.getElementById('custom-modal');
+                dom.modalTitle = document.getElementById('modal-title');
+                dom.modalMessage = document.getElementById('modal-message');
+                dom.apiKeyInput = document.getElementById('api-key-input');
+                dom.toggleApiVis = document.getElementById('toggle-api-visibility');
+                dom.themeToggle = document.getElementById('theme-toggle');
+
+                // Load saved state
+                loadState();
+
+                // Generate initial answer key inputs
+                generateAnswerKeyInputs();
+
+                // Restore saved answer key if exists
+                if (Object.keys(answerKey).length > 0) {
+                    applySavedKey();
+                } else {
+                    saveAnswerKey();
+                }
+
+                // Event listeners
+                dom.toggleApiVis.addEventListener('click', toggleApiVisibility);
+                dom.themeToggle.addEventListener('click', toggleTheme);
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !dom.cameraModal.classList.contains('hidden')) {
+                        closeCamera();
+                    }
+                });
+
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            // ---------- State Persistence ----------
+            function loadState() {
+                const savedKey = localStorage.getItem('mcq_answerKey');
+                if (savedKey) {
+                    try {
+                        answerKey = JSON.parse(savedKey);
+                    } catch (e) { /* ignore */ }
+                }
+                const savedTotal = localStorage.getItem('mcq_totalQuestions');
+                if (savedTotal) {
+                    totalQuestions = parseInt(savedTotal, 10);
+                    dom.totalQuestions.value = totalQuestions;
+                }
+                const savedApiKey = localStorage.getItem('mcq_apiKey');
+                if (savedApiKey) {
+                    apiKey = savedApiKey;
+                    dom.apiKeyInput.value = apiKey;
+                }
+            }
+
+            function saveState() {
+                localStorage.setItem('mcq_answerKey', JSON.stringify(answerKey));
+                localStorage.setItem('mcq_totalQuestions', String(totalQuestions));
+                localStorage.setItem('mcq_apiKey', apiKey);
+            }
+
+            // ---------- Theme ----------
+            function toggleTheme() {
+                const html = document.documentElement;
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            }
+
+            (function loadTheme() {
+                const saved = localStorage.getItem('theme');
+                if (saved === 'light') document.documentElement.classList.remove('dark');
+                else if (saved === 'dark') document.documentElement.classList.add('dark');
+                else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    document.documentElement.classList.remove('dark');
+                }
+            })();
+
+            // ---------- API Key Visibility ----------
+            function toggleApiVisibility() {
+                const input = dom.apiKeyInput;
+                const icon = dom.toggleApiVis.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fa-solid fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fa-solid fa-eye';
+                }
+            }
+
+            // ---------- Tab Switching ----------
+            function switchTab(tab) {
+                if (tab === 'setup') {
+                    dom.setupSection.classList.remove('hidden');
+                    dom.scanSection.classList.add('hidden');
+                    dom.tabSetup.className = "flex-1 py-2 text-xs font-medium rounded-lg bg-black/10 dark:bg-white/20 text-black dark:text-white shadow transition-all duration-200";
+                    dom.tabSetup.setAttribute('aria-selected', 'true');
+                    dom.tabScan.className = "flex-1 py-2 text-xs font-medium rounded-lg text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-all duration-200";
+                    dom.tabScan.setAttribute('aria-selected', 'false');
+                } else {
+                    if (Object.keys(answerKey).length === 0) {
+                        showAlert("Required", "Please configure and save the answer key first!");
+                        return;
+                    }
+                    dom.setupSection.classList.add('hidden');
+                    dom.scanSection.classList.remove('hidden');
+                    dom.tabScan.className = "flex-1 py-2 text-xs font-medium rounded-lg bg-black/10 dark:bg-white/20 text-black dark:text-white shadow transition-all duration-200";
+                    dom.tabScan.setAttribute('aria-selected', 'true');
+                    dom.tabSetup.className = "flex-1 py-2 text-xs font-medium rounded-lg text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-all duration-200";
+                    dom.tabSetup.setAttribute('aria-selected', 'false');
+                }
+            }
+
+            // ---------- Answer Key Generation ----------
+            function generateAnswerKeyInputs() {
+                totalQuestions = parseInt(dom.totalQuestions.value, 10);
+                const container = dom.keyGrid;
+                container.innerHTML = '';
+
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const div = document.createElement('div');
+                    div.className = "flex flex-col items-center bg-black/5 dark:bg-[#1d1d1f] p-2.5 rounded-xl border border-black/5 dark:border-white/5";
+                    div.innerHTML = `
+                        <span class="text-[11px] font-medium text-black/50 dark:text-white/50 mb-1">Q${i}</span>
+                        <select id="ans-${i}" class="bg-white dark:bg-[#2c2c2e] text-black dark:text-white text-xs border border-black/10 dark:border-white/10 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500 transition" aria-label="Answer for question ${i}">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    `;
+                    container.appendChild(div);
+                }
+                if (Object.keys(answerKey).length > 0) {
+                    applySavedKey();
+                }
+            }
+
+            function applySavedKey() {
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const sel = document.getElementById(`ans-${i}`);
+                    if (sel && answerKey[i]) {
+                        sel.value = answerKey[i];
+                    }
+                }
+            }
+
+            function saveAnswerKey() {
+                totalQuestions = parseInt(dom.totalQuestions.value, 10);
+                answerKey = {};
+                for (let i = 1; i <= totalQuestions; i++) {
+                    const val = document.getElementById(`ans-${i}`);
+                    if (val) answerKey[i] = val.value;
+                }
+                saveState();
+                showAlert("Success", "Answer key saved! You can now scan sheets.");
+                dom.tabScan.disabled = false;
+            }
+
+            // ---------- Image Handling ----------
+            function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const dataUrl = e.target.result;
+                        dom.scannedImage.src = dataUrl;
+                        currentImageBase64 = dataUrl.split(',')[1];
+                        dom.previewContainer.classList.remove('hidden');
+                        dom.uploadPlaceholder.classList.add('hidden');
+                        enableEvalButton();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            function clearImage() {
+                dom.scannedImage.src = '';
+                currentImageBase64 = '';
+                dom.previewContainer.classList.add('hidden');
+                dom.uploadPlaceholder.classList.remove('hidden');
+                dom.evalBtn.disabled = true;
+                dom.evalBtn.className = "w-full bg-black/10 dark:bg-white/10 text-black/40 dark:text-white/40 text-sm font-medium py-3 rounded-xl transition cursor-not-allowed";
+                dom.resultSection.classList.add('hidden');
+                const fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+            }
+
+            function enableEvalButton() {
+                dom.evalBtn.disabled = false;
+                dom.evalBtn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-3 rounded-xl transition shadow-lg shadow-blue-500/20 active:scale-[0.99] cursor-pointer";
+            }
+
+            // ---------- Camera ----------
+            async function openCamera() {
+                dom.cameraModal.classList.remove('hidden');
+                dom.uploadPlaceholder.classList.add('hidden');
+
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' },
+                        audio: false
+                    });
+                    dom.cameraStream.srcObject = mediaStream;
+                } catch (err) {
+                    showAlert("Camera Error", "Unable to access camera. Please check permissions or use image upload.");
+                    closeCamera();
+                }
+            }
+
+            function closeCamera() {
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
+                }
+                dom.cameraStream.srcObject = null;
+                dom.cameraModal.classList.add('hidden');
+                dom.uploadPlaceholder.classList.remove('hidden');
+            }
+
+            function capturePhoto() {
+                const video = dom.cameraStream;
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const dataUrl = canvas.toDataURL('image/png');
+                dom.scannedImage.src = dataUrl;
+                currentImageBase64 = dataUrl.split(',')[1];
+
+                closeCamera();
+
+                dom.previewContainer.classList.remove('hidden');
+                enableEvalButton();
+            }
+
+            // ---------- Evaluation with Grok (xAI) API – Fixed ----------
+            async function evaluateExam() {
+                // Read API key
+                apiKey = dom.apiKeyInput.value.trim();
+                if (!apiKey) {
+                    showAlert("Configuration Error", "Please enter your Grok API key.");
+                    return;
+                }
+                localStorage.setItem('mcq_apiKey', apiKey);
+
+                if (!currentImageBase64) {
+                    showAlert("Warning", "Please upload or capture a student sheet first.");
+                    return;
+                }
+
+                // Disable button and show loading
+                dom.evalBtn.disabled = true;
+                dom.loadingSpinner.classList.remove('hidden');
+                dom.resultSection.classList.add('hidden');
+                dom.loadingStatus.textContent = 'Analyzing student responses via Grok Vision...';
+
+                const totalQ = Object.keys(answerKey).length;
+                const prompt = `You are an expert exam paper scanner. Analyze this student MCQ answer sheet image. There are ${totalQ} questions. Accurately read the option letter (A, B, C, or D) chosen or written by the student for each question from 1 to ${totalQ}. 
+                Return the result strictly as a JSON object where keys are question numbers ("1", "2", etc.) and values are uppercase option letters ("A", "B", "C", or "D"). Do not include any other text.`;
+
+                let extractedAnswers = {};
+                let success = false;
+                let errorMessage = '';
+
+                // Grok API endpoint
+                const endpoint = 'https://api.x.ai/v1/chat/completions';
+                // Use the latest vision model
+                const model = 'grok-2-vision-1212';
+
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    try {
+                        dom.loadingStatus.textContent = `Attempt ${attempt + 1} of 5...`;
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${apiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                model: model,
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: [
+                                            { type: 'text', text: prompt },
+                                            {
+                                                type: 'image_url',
+                                                image_url: {
+                                                    url: `data:image/png;base64,${currentImageBase64}`
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                response_format: { type: 'json_object' },
+                                max_tokens: 1024
+                            })
+                        });
+
+                        // Log status for debugging
+                        console.log(`HTTP ${response.status}`);
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('Grok API error:', errorText);
+                            errorMessage = `HTTP ${response.status}: ${errorText}`;
+                            // If 401 or 403, break early (key invalid)
+                            if (response.status === 401 || response.status === 403) {
+                                throw new Error('Invalid API key or insufficient permissions. Check your key.');
+                            }
+                            throw new Error(errorMessage);
+                        }
+
+                        const result = await response.json();
+                        console.log('Grok response:', result);
+
+                        const textContent = result.choices?.[0]?.message?.content;
+                        if (textContent) {
+                            console.log('Raw content:', textContent);
+                            // Try JSON parse
+                            try {
+                                extractedAnswers = JSON.parse(textContent);
+                            } catch (e) {
+                                // Regex fallback: find "number":"A-D"
+                                const matches = textContent.match(/"(\d+)":"([A-D])"/g);
+                                if (matches) {
+                                    matches.forEach(m => {
+                                        const parts = m.match(/"(\d+)":"([A-D])"/);
+                                        if (parts) extractedAnswers[parts[1]] = parts[2];
+                                    });
+                                }
+                            }
+                            // If we got any answers, succeed
+                            if (Object.keys(extractedAnswers).length > 0) {
+                                success = true;
+                                break;
+                            } else {
+                                errorMessage = 'No valid answer data found in response.';
+                            }
+                        } else {
+                            errorMessage = 'Empty response from Grok.';
+                        }
+                    } catch (err) {
+                        console.error(`Attempt ${attempt+1} error:`, err);
+                        errorMessage = err.message || 'Unknown error';
+                        // If it's a key error, don't retry
+                        if (errorMessage.includes('Invalid API key') || errorMessage.includes('401')) {
+                            success = false;
+                            break;
+                        }
+                        // Wait before retry
+                        await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
+                    }
+                }
+
+                dom.loadingSpinner.classList.add('hidden');
+                dom.evalBtn.disabled = false;
+                enableEvalButton();
+
+                if (!success || Object.keys(extractedAnswers).length === 0) {
+                    // Show the detailed error message
+                    showAlert("Evaluation Failed", `Error: ${errorMessage || 'Unable to parse the sheet. Please ensure image clarity and try again.'}\n\nCheck the browser console (F12) for more details.`);
+                    return;
+                }
+
+                // Calculate results
+                let correctCount = 0;
+                let breakdownHtml = '';
+
+                for (let i = 1; i <= totalQ; i++) {
+                    const studentAns = (extractedAnswers[i] || extractedAnswers[String(i)] || 'N/A').toUpperCase();
+                    const correctAns = answerKey[i];
+                    const isCorrect = (studentAns === correctAns);
+
+                    if (isCorrect) correctCount++;
+
+                    breakdownHtml += `
+                        <div class="flex flex-col items-center justify-center p-2 rounded-xl border ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-rose-500/10 border-rose-500/30 text-rose-500'}">
+                            <span class="text-[10px] font-semibold opacity-70">Q${i}</span>
+                            <span class="text-xs font-bold">${studentAns}</span>
+                            <span class="text-[9px] mt-0.5">${isCorrect ? '✓' : '✗'}</span>
+                        </div>
+                    `;
+                }
+
+                const percentage = Math.round((correctCount / totalQ) * 100);
+                let grade = '';
+                if (percentage >= 85) grade = 'Excellent (A+)';
+                else if (percentage >= 70) grade = 'Very Good (A)';
+                else if (percentage >= 50) grade = 'Good (B)';
+                else if (percentage >= 33) grade = 'Passed (C)';
+                else grade = 'Failed (F)';
+
+                dom.resScore.innerText = `${correctCount} / ${totalQ}`;
+                dom.resPercentage.innerText = `${percentage}%`;
+                dom.resGrade.innerText = grade;
+                dom.breakdownGrid.innerHTML = breakdownHtml;
+                dom.resultSection.classList.remove('hidden');
+
+                window._lastResults = { correctCount, totalQ, percentage, grade, breakdownHtml, extractedAnswers, answerKey };
+            }
+
+            // ---------- Export Results ----------
+            function exportResults() {
+                const results = window._lastResults;
+                if (!results) {
+                    showAlert("No Data", "Please evaluate a sheet first.");
+                    return;
+                }
+                let csv = 'Question,Student Answer,Correct Answer,Status\n';
+                for (let i = 1; i <= results.totalQ; i++) {
+                    const student = (results.extractedAnswers[i] || 'N/A').toUpperCase();
+                    const correct = results.answerKey[i] || 'N/A';
+                    const status = student === correct ? 'Correct' : 'Incorrect';
+                    csv += `Q${i},${student},${correct},${status}\n`;
+                }
+                csv += `\nScore,${results.correctCount}/${results.totalQ}\n`;
+                csv += `Percentage,${results.percentage}%\n`;
+                csv += `Grade,${results.grade}\n`;
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `MCQ_Results_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            // ---------- Modal ----------
+            function showAlert(title, msg) {
+                dom.modalTitle.innerText = title;
+                dom.modalMessage.innerText = msg;
+                dom.modal.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                dom.modal.classList.add('hidden');
+            }
+
+            // ---------- Public API ----------
+            return {
+                init,
+                switchTab,
+                generateAnswerKeyInputs,
+                saveAnswerKey,
+                handleImageUpload,
+                clearImage,
+                openCamera,
+                closeCamera,
+                capturePhoto,
+                evaluateExam,
+                exportResults,
+                showAlert,
+                closeModal
+            };
+        })();
+
+        document.addEventListener('DOMContentLoaded', () => App.init());
+        window.App = App;
+    </script>
+</body>
+</html>
